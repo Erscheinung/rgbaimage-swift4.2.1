@@ -44,81 +44,53 @@ public struct RGBAImage {
     
     public var pixels: [Pixel]
     public var width: Int
-    
     public var height: Int
-    
     
     public init?(image: UIImage) {
         
         guard let cgImage = image.cgImage else { return nil }
         
-        
         // Redraw image for correct pixel format
         
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        
-        
+        let colorSpace = CGColorSpaceCreateDeviceRGB()      
         var bitmapInfo: UInt32 = CGBitmapInfo.byteOrder32Big.rawValue
         
         bitmapInfo |= CGImageAlphaInfo.premultipliedLast.rawValue & CGBitmapInfo.alphaInfoMask.rawValue
-        
-        
+
         width = Int(image.size.width)
-        
         height = Int(image.size.height)
         
         let bytesPerRow = width * 4
-        
-        
         let imageData = UnsafeMutablePointer<Pixel>.allocate(capacity: width * height)
         
-        
-        guard let imageContext = CGContext(data: imageData, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo) else { return nil }
-        
+        guard let imageContext = CGContext(data: imageData, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo) else { return nil }  
         imageContext.draw(cgImage, in: CGRect(origin: .zero, size: image.size))
-        
-        
         let bufferPointer = UnsafeMutableBufferPointer<Pixel>(start: imageData, count: width * height)
         
         pixels = Array(bufferPointer)
         
-        
         imageData.deinitialize(count: width * height)
         imageData.deallocate()
-        
     }
-    
     
     public func toUIImage() -> UIImage? {
         
         let colorSpace = CGColorSpaceCreateDeviceRGB()
-        
         var bitmapInfo: UInt32 = CGBitmapInfo.byteOrder32Big.rawValue
         
         bitmapInfo |= CGImageAlphaInfo.premultipliedLast.rawValue & CGBitmapInfo.alphaInfoMask.rawValue
         
-        
-        let bytesPerRow = width * 4
-        
-        
+        let bytesPerRow = width * 4      
         let imageDataReference = UnsafeMutablePointer<Pixel>(mutating: pixels)
         
-        defer {
-            
+        defer {   
             imageDataReference.deinitialize(count: width*height)
-            
         }
         
         let imageContext = CGContext(data: imageDataReference, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bitmapInfo, releaseCallback: nil, releaseInfo: nil)
-        
-        
-        guard let cgImage = imageContext!.makeImage() else {return nil}
-        
+        guard let cgImage = imageContext!.makeImage() else {return nil} 
         let image = UIImage(cgImage: cgImage)
-        
-        
-        return image
-        
+       
+        return image   
     }
-    
 }
